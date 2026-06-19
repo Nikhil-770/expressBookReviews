@@ -51,16 +51,24 @@ public_users.get('/', function (req, res) {
 });
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn', function (req, res) {
-    const isbn = req.params.isbn;
+public_users.get('/isbn/:isbn', async function (req, res) {
+    try {
+        const isbn = req.params.isbn;
 
-    const book = books[isbn];
+        const getBookByISBN = async () => {
+            return books[isbn];
+        };
 
-    if (book) {
-        return res.status(200).json(book);
+        const book = await getBookByISBN();
+
+        if (book) {
+            return res.status(200).json(book);
+        }
+
+        return res.status(404).json({ message: "Book not found" });
+    } catch (error) {
+        return res.status(500).json({ message: "Error retrieving book details" });
     }
-
-    return res.status(404).json({ message: "Book not found" });
 });
   
 // Get book details based on author
