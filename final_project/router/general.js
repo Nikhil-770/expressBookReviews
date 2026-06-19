@@ -72,26 +72,36 @@ public_users.get('/isbn/:isbn', async function (req, res) {
 });
   
 // Get book details based on author
-public_users.get('/author/:author', function (req, res) {
-    const author = req.params.author.toLowerCase();
+public_users.get('/author/:author', async function (req, res) {
+    try {
+        const author = req.params.author.toLowerCase();
 
-    let result = {};
+        const getBooksByAuthor = async () => {
+            let result = {};
 
-    const keys = Object.keys(books);
+            Object.keys(books).forEach((isbn) => {
+                if (books[isbn].author.toLowerCase() === author) {
+                    result[isbn] = books[isbn];
+                }
+            });
 
-    for (let i = 0; i < keys.length; i++) {
-        let isbn = keys[i];
+            return result;
+        };
 
-        if (books[isbn].author.toLowerCase() === author) {
-            result[isbn] = books[isbn];
+        const result = await getBooksByAuthor();
+
+        if (Object.keys(result).length === 0) {
+            return res.status(404).json({
+                message: "No books found for this author"
+            });
         }
-    }
 
-    if (Object.keys(result).length === 0) {
-        return res.status(404).json({ message: "No books found for this author" });
+        return res.status(200).json(JSON.parse(JSON.stringify(result)));
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error retrieving books by author"
+        });
     }
-
-    return res.status(200).json(JSON.parse(JSON.stringify(result)));
 });
 
 // Get all books based on title
