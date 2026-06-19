@@ -105,26 +105,36 @@ public_users.get('/author/:author', async function (req, res) {
 });
 
 // Get all books based on title
-public_users.get('/title/:title', function (req, res) {
-    const title = req.params.title.toLowerCase();
+public_users.get('/title/:title', async function (req, res) {
+    try {
+        const title = req.params.title.toLowerCase();
 
-    let result = {};
+        const getBooksByTitle = async () => {
+            let result = {};
 
-    const keys = Object.keys(books);
+            Object.keys(books).forEach((isbn) => {
+                if (books[isbn].title.toLowerCase() === title) {
+                    result[isbn] = books[isbn];
+                }
+            });
 
-    for (let i = 0; i < keys.length; i++) {
-        let isbn = keys[i];
+            return result;
+        };
 
-        if (books[isbn].title.toLowerCase() === title) {
-            result[isbn] = books[isbn];
+        const result = await getBooksByTitle();
+
+        if (Object.keys(result).length === 0) {
+            return res.status(404).json({
+                message: "No books found for this title"
+            });
         }
-    }
 
-    if (Object.keys(result).length === 0) {
-        return res.status(404).json({ message: "No books found for this title" });
+        return res.status(200).json(JSON.parse(JSON.stringify(result)));
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error retrieving books by title"
+        });
     }
-
-    return res.status(200).json(JSON.parse(JSON.stringify(result)));
 });
 
 //  Get book review
